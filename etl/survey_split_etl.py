@@ -7,64 +7,33 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-model_names = ['sentence-transformers/multi-qa-mpnet-base-dot-v1', # 0
-               'intfloat/multilingual-e5-large', # 1
-               'shibing624/text2vec-base-chinese', # 2
-               'hkunlp/instructor-large', # 3
-               'GanymedeNil/text2vec-large-chinese', # 4
-               'sentence-transformers/all-mpnet-base-v2', # 5
-               'shibing624/text2vec-base-chinese-paraphrase', # 6
-               ]
-
-model_select = 6
-is_new_test = True
-
-data_dir = "./dw/survey_contents"
-
-model_name = model_names[model_select]
-model_kwargs = {'device': 'cuda'}
-encode_kwargs = {'normalize_embeddings': True}
-
-# hf = HuggingFaceEmbeddings(
-#     model_name=model_name,
-#     model_kwargs=model_kwargs,
-#     encode_kwargs=encode_kwargs
-# )
-
-
-hf = HuggingFaceEmbeddings(
-    model_name=model_name,
-    model_kwargs=model_kwargs,
-    encode_kwargs=encode_kwargs
-)
-from langchain.vectorstores import Chroma
-
-model_name_pre = model_name.split('/')[-1]
-parent_path = './embedding_dbs/'
-persist_directory = 'survey_db_'+model_name_pre+'_embedding'
-if is_new_test :
-    if not os.path.exists(parent_path):
-        os.mkdir(parent_path)
-    
-    
-    persist_directory = parent_path + persist_directory
-    if os.path.exists(persist_directory):
-        shutil.rmtree(persist_directory)
-
-
-
-db = Chroma.from_texts([''],hf, persist_directory=persist_directory)
-
+def clear_line(n=1):
+    LINE_UP = '\033[1A'
+    LINE_CLEAR = '\x1b[2K'
+    for i in range(n):
+        print(LINE_UP, end=LINE_CLEAR)
 
 data_split_num = 0
 survey_num = 0 
 docs = []
-docs_size = 500
+
+
+parent_dir = "./dw/splited_docs/"
 is_need_split = True
-LINE_UP = '\033[1A'
-LINE_CLEAR = '\x1b[2K'
+split_buckets_cnt = 25
+split_out_dir = './survey_splits/'
+
+data_input_dir = "./dw/survey_contents"
+
 text_splitter = RecursiveCharacterTextSplitter(separators=['\r\n\r\n','\n\n','\r\n'],chunk_size=400, chunk_overlap=50)
-for root, ds, fs in os.walk(data_dir):
+
+data_out_dir = parent_dir + split_out_dir
+
+if os.path.exists(data_out_dir):
+    shutil.rmtree(data_out_dir)
+os.mkdir(data_out_dir)
+
+for root, ds, fs in os.walk(data_input_dir):
 
     for f in fs:
         data_split_num += 1
@@ -87,6 +56,9 @@ for root, ds, fs in os.walk(data_dir):
                 name = data["SECURITY_NAME_ABBR"]
 
                 content = data["CONTENT"]
+
+                date = data["NOTICE_DATE"]
+
                 if content is None:
                     #print(f'document is {code} {name} \'s content is null', end='\r')
                     content = 'None'
@@ -94,7 +66,7 @@ for root, ds, fs in os.walk(data_dir):
                 if is_need_split:
                     
                         
-                    ret = re.findall('([^。!]+?\?[^\?]*[。!])', content)
+                    ret = re.findall('([^。!]+?\?[^\?]*[。!])', content) # extract question and answer pair
                     content_re = []
                     for i in range(len(ret)):
                         content_re.append(ret[i])
@@ -103,14 +75,21 @@ for root, ds, fs in os.walk(data_dir):
                         content_re.append(content)
                     
                     for s_c in content_re:
-                        s_c = name + ":" + s_c
+                        #s_c = name + ":" + s_c
                         doc = Document(page_content=s_c,
                                 metadata={
                                     "code":code,
-                                    "name":name
+                                    "name":name,
+                                    'date':date,
+                                    'full_text':'',
                                 })
                         split_docs = text_splitter.split_documents([doc])
-                        docs += split_docs
+                        
+                        for i_s_doc in split_docs:
+                            i_s_doc.page_content = name +":" + i_s_doc.page_content
+                            if len(split_docs) > 1:
+                                i_s_doc.metadata["full_text"] = doc.page_content
+                            docs.append(i_s_doc)
                 else:
                     doc = Document(page_content=content,
                                 metadata={
@@ -120,15 +99,20 @@ for root, ds, fs in os.walk(data_dir):
                 
                     docs.append(doc)
 
-                if survey_num % docs_size == 0:
-                    print(f'load {data_split_num}th  doc, name is {fullname}')
-                    print(f'insert {survey_num}th survey to db')
-                    print(LINE_UP+LINE_UP, end=LINE_CLEAR)
-                    db.add_documents(docs)
-                    db.persist()
-                    docs=[]
+                suffix = str(survey_num % split_buckets_cnt)+'.json'
+
+                data_out_filename =  data_out_dir+'/split_' + suffix
+
+                with open(data_out_filename, 'a+', encoding='utf8') as out_f:
+                    for i_doc in docs:
+                        tmp = {"page_content":i_doc.page_content, "metadata":i_doc.metadata}
+                        
+                        out_f.writelines(json.dumps(tmp,ensure_ascii=False) + "\n")
+                
+                docs = []
+                print(f'load {data_split_num}th  doc, name is {fullname}', end='\r')
+
+                    
 
 
-db.add_documents(docs)
-db.persist()
 
