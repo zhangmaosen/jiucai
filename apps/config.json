@@ -1,0 +1,7 @@
+{
+    "model_names_map" : {
+    "mpnet":"sentence-transformers/multi-qa-mpnet-base-dot-v1",
+    "my-184":"C:\\Users\\zhang\\dev\\sentence-transformers\\output\\training_paraphrases_hfl-chinese-lert-large-2023-07-18_21-11-13\\184",
+    "shibing_paraphrase":"shibing624/text2vec-base-chinese-paraphrase"
+    }
+}

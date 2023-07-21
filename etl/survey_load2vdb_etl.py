@@ -16,9 +16,10 @@ model_names = ['sentence-transformers/multi-qa-mpnet-base-dot-v1', # 0
                'shibing624/text2vec-base-chinese-paraphrase', # 6
                'silk-road/luotuo-bert-medium', # 7
                'sentence-transformers/multi-qa-mpnet-base-cos-v1', # 8
+               'C:\\Users\\zhang\\dev\\sentence-transformers\\output\\training_paraphrases_hfl-chinese-lert-large-2023-07-18_21-11-13\\184', #9
                ]
 
-model_select = 8
+model_select = 9
 is_new_test = True
 
 
@@ -41,7 +42,11 @@ hf = HuggingFaceEmbeddings(
 )
 from langchain.vectorstores import Chroma
 
-model_name_pre = model_name.split('/')[-1]
+if model_select == 9:
+    model_name_pre = 'my-184'
+else:
+    model_name_pre = model_name.split('/')[-1]
+    
 parent_path = './embedding_dbs/'
 persist_directory = 'survey_db_'+model_name_pre+'_embedding'
 if is_new_test :
