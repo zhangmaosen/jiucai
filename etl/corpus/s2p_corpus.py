@@ -12,8 +12,8 @@ program_path = os.path.dirname(__file__)
 print('File name :    ', program_name)
 print('Directory Name:     ', program_path)
 
-data_input_path = program_path + '/../../dw/splited_docs/survey_splits/'
-test_data_input_path = program_path + '/../../dw/test/survey_contents/'
+data_input_path = program_path + '/../../dw//survey_qa_pairs/'
+#test_data_input_path = program_path + '/../../dw/test/survey_contents/'
 data_output_path = program_path + '/../../dw/corpus/'
 
 question_pattern = '(.*\?)((?:.|\n)*)'
@@ -33,17 +33,14 @@ with open(corpus_output_name, 'w+', encoding='utf8') as out_file:
                         break
                     
                     data_json_str = json.loads(line)
-                    content = data_json_str["page_content"]
+                    answer = data_json_str["page_content"]
+                    question = data_json_str["metadata"]["question"]
+                   
+                    answer = answer.replace("\t",'')
+                    question = question.replace("\t", '')
 
-                    content = re.sub('[\r\n]', '',content )
-                    ret = re.findall(question_pattern, content )
-                    
-                    if  ret != []:
-                        (q, a) = ret[0]
-
-
-                        #print(f"question is {q}, \n answer is {a}")
-                        if q != '' and a != '':
-                            out_file.writelines(q+'\t'+a+'\n')
+                    answer = re.sub("[\n\r]", '', answer)
+                    question = re.sub("[\n\r]", '', question)
+                    out_file.writelines(question+'\t'+answer+'\n')
             
 out_file.close()
