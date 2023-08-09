@@ -77,16 +77,26 @@ def load_data2db(model_name, input_data_dir, db_dir='./embedding_dbs/test_db/', 
     return chroma_db
 
 def load_db_from_dir(model_name, db_dir, device_type='cpu'):
-    model = model_names_map[model_name]
-    
+    model = model_names_map[model_name]['name']
+    embedding_cls = model_names_map[model_name]['embedding']
+
     model_kwargs = {'device': device_type}
     encode_kwargs = {'normalize_embeddings': True}
 
-    embedding = HuggingFaceEmbeddings(
-        model_name=model,
-        model_kwargs=model_kwargs,
-        encode_kwargs=encode_kwargs
-    )
+    if embedding_cls = 'HuggingFaceEmbeddings':
+        embedding = HuggingFaceEmbeddings(
+            model_name=model,
+            model_kwargs=model_kwargs,
+            encode_kwargs=encode_kwargs
+        )
+    elif embedding_cls = 'HuggingFaceInstructEmbeddings':
+        embedding = HuggingFaceEmbeddings(
+            model_name=model,
+            model_kwargs=model_kwargs,
+            embed_instruction="", # no instruction is needed for candidate passages
+            query_instruction="Represent this sentence for searching relevant passages: ",
+            encode_kwargs=encode_kwargs
+        )
 
     chroma_db = Chroma(persist_directory=db_dir, embedding_function=embedding,collection_metadata={"hnsw:space": "cosine"})
 
