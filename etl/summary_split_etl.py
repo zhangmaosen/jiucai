@@ -13,8 +13,8 @@ def clear_line(n=1):
         print(LINE_UP, end=LINE_CLEAR)
 
 i = 1
-parent_dir = './dw/'
-json_summary_dir = 'splited_docs/summary_splits/'
+parent_dir = './etl_out/partition_by_date/'
+json_summary_dir = 'summary_splits/'
 
 out_dir = parent_dir + json_summary_dir
 isExist = os.path.exists(out_dir)
@@ -27,8 +27,8 @@ else:
     shutil.rmtree(out_dir)
     os.makedirs(out_dir)
 
-data_dir = 'summaries'
-input_dir = parent_dir + data_dir
+data_dir = 'summary'
+input_dir = './crawl/stock_report/' + data_dir
 for root, ds, fs in os.walk(input_dir):
 
     for f in fs:
@@ -44,15 +44,23 @@ for root, ds, fs in os.walk(input_dir):
             #print(r)
             body = Selector(text=r)
             title = body.css('.c-title h1::text').get()
-            #print(f'title is {title}')
+
+            infos = body.css('.c-infos span::text').getall()
+            company = infos[0]
+            writer = infos[1]
+            if writer.startswith("\\n"):
+                writer = '未知'
+                #print(f' infos are {infos}, company is {company}')
+            #break
             content = (body.css('.ctx-content').css('p::text').getall())
             content = '\n'.join(content)
             date = re.findall('AP(\d{8})', f)[0]
             #print(f'content is {content}')
-            j = json.dumps({'title':title, 'content':content, 'file_name':fullname, 'date':date}, ensure_ascii=False)
+            j = json.dumps({'company':company, 'writer':writer, 'title':title, 'content':content, 'file_name':fullname, 'date':date}, ensure_ascii=False)
 
             file_name = f.split('.')[0]+'.json'
-            split_name = 'split_' + str(hash(file_name) % 20) + '.jsonl'
+            #split_name = 'split_' + str(hash(file_name) % 20) + '.jsonl'
+            split_name = 'split_' + date + '.jsonl'
             out_f_name = out_dir + split_name
             print(f'etl {i}th doc')
             print(f'load into {out_f_name}')

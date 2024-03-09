@@ -162,3 +162,12 @@ cython_debug/
 # vector db files
 embedding_dbs/
 dw/
+
+crawl/stock_report/summary
+crawl/stock_report/survey_contents
+crawl/stock_report/survey_lists
+crawl/stock_report/reports_lists_2020-02-28_2024-02-27.txt
+
+etl_out/
+
+RAG/

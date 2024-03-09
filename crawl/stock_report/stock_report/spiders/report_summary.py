@@ -1,6 +1,10 @@
 import scrapy
 import json
 import os
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
+from hydra import compose, initialize
 
 class ReportSummarySpider(scrapy.Spider):
     name = "report_summary"
@@ -10,13 +14,24 @@ class ReportSummarySpider(scrapy.Spider):
     url = 'https://data.eastmoney.com/report/zw_industry.jshtml'
 
     report_lists_file = 'reports_lists.txt' 
+    file = None
     #report_lists_file = 'sample_lists.json' 
     path_no = 1
     pdf_cnt = 0
     pdf_per_path = 100
 
+    def config_app(self) -> None:
+        initialize(version_base=None, config_path="conf", job_name="test_app")
+        cfg = compose(config_name="crawl_report_summary")
+        print(OmegaConf.to_yaml(cfg))
+        self.report_lists_file = cfg["urls_file_name"] if "urls_file_name" in cfg.keys() else self.report_lists_file
+
+        
+        #self.file =  open(self.lists_file_name, mode = 'r', encoding='utf8')
+
     def start_requests(self):
-        os.mkdir(f'./summary/{self.path_no}')
+        self.config_app()
+        os.makedirs(f'./summary/{self.path_no}', exist_ok=True)
         with open(self.report_lists_file, mode='r', encoding='utf8') as file:
             while True:
                 line = file.readline()
