@@ -1,0 +1,1 @@
+curl http://localhost:11434/api/generate -d '{"model": "deepseek-llm:67b","prompt": "Why is the sky blue?", "stream": false,"keep_alive": "24h"}

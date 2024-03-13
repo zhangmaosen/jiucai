@@ -160,6 +160,7 @@ cython_debug/
 #.idea/
 
 # vector db files
+tmp/*
 embedding_dbs/
 dw/
 
@@ -171,3 +172,10 @@ crawl/stock_report/reports_lists_2020-02-28_2024-02-27.txt
 etl_out/
 
 RAG/
+
+stock_db/
+
+flagged/
+
+embbedding/tmp/
+
