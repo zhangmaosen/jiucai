@@ -179,3 +179,6 @@ flagged/
 
 embbedding/tmp/
 
+*.parquet
+*.jsonl
+nohup.out

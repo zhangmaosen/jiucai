@@ -12,7 +12,7 @@ from llama_index.core import Settings
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
-Settings.llm = Ollama(model="deepseek-llm:67b", request_timeout=360.0)
+Settings.llm = Ollama(model="qwen:72b-chat", request_timeout=360.0, )
 Settings.embed_model = HuggingFaceEmbedding(
     model_name="/data/models/bge-large-zh"
 )
@@ -36,8 +36,10 @@ query_engine = index.as_query_engine(
 
 import gradio as gr
 from IPython.display import Markdown, display
+Settings.llm.complete(f'你好',formatted=False,  keep_alive = -1)
 
 def qa(input, input2):
+    print(input)
     query_engine = index.as_query_engine(
     similarity_top_k = input2
 )
@@ -77,4 +79,4 @@ with gr.Blocks() as demo:
     # greet_btn.click(fn=greet, inputs=name, outputs=output, api_name="greet")
 
 
-demo.launch( share = True)
+demo.launch(server_name='0.0.0.0')
