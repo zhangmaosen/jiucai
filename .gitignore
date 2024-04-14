@@ -182,3 +182,4 @@ embbedding/tmp/
 *.parquet
 *.jsonl
 nohup.out
+lab/test.json
